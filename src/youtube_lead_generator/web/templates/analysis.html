@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Deep Analysis Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+                :root {
+            --bg-color: #f3f2f1;
+            --surface-color: rgba(255, 255, 255, 0.9);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent-blue: #0f6cba;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(15, 108, 186, 0.05), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(15, 108, 186, 0.05), transparent 25%);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15), transparent 25%);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            animation: fadeInDown 0.5s ease;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid var(--accent-blue);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+            object-fit: cover;
+        }
+
+        .header-info h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #0f6cba, #1e293b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 2rem;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+        }
+
+        .glass-card {
+            background: var(--surface-color);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        /* Span classes */
+        .col-4 { grid-column: span 4; }
+        .col-8 { grid-column: span 8; }
+        .col-6 { grid-column: span 6; }
+        .col-12 { grid-column: span 12; }
+
+        @media (max-width: 1024px) {
+            .col-4, .col-8, .col-6 { grid-column: span 12; }
+        }
+
+        h3 {
+            margin: 0 0 1.5rem 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .data-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .data-value {
+            font-weight: 500;
+            font-size: 1rem;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .badge-green { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-red { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .video-card {
+            background: rgba(0, 0, 0, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .video-card h4 {
+            margin: 0 0 1rem 0;
+            font-size: 1rem;
+            line-height: 1.4;
+            color: var(--accent-blue);
+        }
+
+        .tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .tag {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .loader {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Utility */
+        .text-green { color: #34d399; }
+        .text-red { color: #f87171; }
+        .text-blue { color: #60a5fa; }
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="loader">
+        <div class="spinner"></div>
+        <div>Initializing AI Analysis Engine...</div>
+    </div>
+
+    <div id="dashboard" class="dashboard-container" style="display: none;">
+        <div class="header">
+            <img id="headerAvatar" class="avatar" src="" alt="Avatar">
+            <div class="header-info">
+                <h1 id="headerName">Channel Name</h1>
+                <div class="header-stats">
+                    <span id="headerSubs">0 Subscribers</span>
+                    <span id="headerViews">0 Total Views</span>
+                    <span id="headerVideos">0 Videos</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- Overview Panel -->
+            <div class="glass-card col-4" style="animation-delay: 0.1s;">
+                <h3>📊 Creator Persona</h3>
+                <ul class="data-list">
+                    <li class="data-item">
+                        <span class="data-label">Primary Niche</span>
+                        <span class="data-value text-blue" id="cpNiche">-</span>
+                    </li>
+                    <li class="data-item">
+                        <span class="data-label">Industry</span>
+                        <span class="data-value" id="cpIndustry">-</span>
+                    </li>
+                    <li class="data-item">
+                        <span class="data-label">Experience Level</span>
+                        <span class="data-value badge badge-blue" id="cpExp">-</span>
+                    </li>
+                    <li class="data-item">
+                        <span class="data-label">Language</span>
+                        <span class="data-value" id="cpLang">-</span>
+                    </li>
+                    <li class="data-item">
+                        <span class="data-label">Brand Friendly</span>
+                        <span class="data-value" id="cpBrand">-</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Audience Panel -->
+            <div class="glass-card col-4" style="animation-delay: 0.2s;">
+                <h3>🎯 Audience Insights</h3>
+                <ul class="data-list">
+                    <li class="data-item">
+                        <span class="data-label">Target Demographic</span>
+                        <span class="data-value" id="audTarget">-</span>
+                    </li>
+                    <li class="data-item">
+                        <span class="data-label">Buying Intent</span>
+                        <span class="data-value badge badge-green" id="audIntent">-</span>
+                    </li>
+                    <li class="data-item">
+                        <span class="data-label">Spending Power</span>
+                        <span class="data-value" id="audSpend">-</span>
+                    </li>
+                    <li class="data-item">
+                        <span class="data-label">Community Strength</span>
+                        <span class="data-value text-blue" id="audComm">-</span>
+                    </li>
+                    <li class="data-item">
+                        <span class="data-label">Skill Level</span>
+                        <span class="data-value" id="audSkill">-</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Performance / Quality Panel -->
+            <div class="glass-card col-4" style="animation-delay: 0.3s;">
+                <h3>📈 Quality & Activity</h3>
+                <ul class="data-list">
+                    <li class="data-item">
+                        <span class="data-label">Activity Status</span>
+                        <span class="data-value badge badge-blue" id="actStatus">-</span>
+                    </li>
+                    <li class="data-item">
+                        <span class="data-label">Production Quality</span>
+                        <span class="data-value" id="qProd">-</span>
+                    </li>
+                    <li class="data-item">
+                        <span class="data-label">Professionalism</span>
+                        <span class="data-value" id="qProf">-</span>
+                    </li>
+                    <li class="data-item">
+                        <span class="data-label">Activity Score</span>
+                        <span class="data-value text-green" id="actScore">-</span>
+                    </li>
+                    <li class="data-item">
+                        <span class="data-label">Upload Gap (Days)</span>
+                        <span class="data-value text-red" id="actGap">-</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Chart Activity -->
+            <div class="glass-card col-8" style="animation-delay: 0.4s;">
+                <h3>🎬 Upload Velocity (Past 1 Year)</h3>
+                <canvas id="activityChart" height="100"></canvas>
+            </div>
+
+            <!-- Sponsorship -->
+            <div class="glass-card col-4" style="animation-delay: 0.5s;">
+                <h3>💰 Sponsorship Profile</h3>
+                <ul class="data-list">
+                    <li class="data-item">
+                        <span class="data-label">Sponsorship Readiness</span>
+                        <span class="data-value badge badge-green" id="spReady">-</span>
+                    </li>
+                    <li class="data-item">
+                        <span class="data-label">Has Sponsorships</span>
+                        <span class="data-value" id="spHas">-</span>
+                    </li>
+                    <li class="data-item">
+                        <span class="data-label">Affiliate Links</span>
+                        <span class="data-value" id="spAff">-</span>
+                    </li>
+                    <li class="data-item">
+                        <span class="data-label">Business Email</span>
+                        <span class="data-value text-blue" id="spEmail">-</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Top Videos Deep Analysis -->
+            <div class="glass-card col-12" style="animation-delay: 0.6s;">
+                <h3>🧠 Deep Content Analysis (Top Videos)</h3>
+                <div class="video-grid" id="videoGrid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const CHANNEL_ID = {{ channel_id }};
+        
+        function formatNum(num) {
+            return Number(num || 0).toLocaleString();
+        }
+        
+        function toBoolStr(val) {
+            if (val === 1 || val === true || val === '1' || val === 'true') return '<span class="text-green">Yes</span>';
+            return '<span class="text-red">No</span>';
+        }
+
+        async function initDashboard() {
+            try {
+                const res = await fetch(`/api/channel/${CHANNEL_ID}`);
+                const data = await res.json();
+                
+                if(!data.channel) throw new Error("Channel not found");
+                const ch = data.channel;
+                
+                // Header
+                document.getElementById('headerName').textContent = ch.channel_name || 'Unknown';
+                document.getElementById('headerAvatar').src = `https://unavatar.io/youtube/${ch.handle || ch.channel_name}?fallback=https://api.dicebear.com/7.x/initials/svg?seed=${ch.channel_name}`;
+                document.getElementById('headerSubs').textContent = `${formatNum(ch.subscriber_count)} Subscribers`;
+                document.getElementById('headerViews').textContent = `${formatNum(ch.total_views)} Total Views`;
+                document.getElementById('headerVideos').textContent = `${formatNum(ch.total_videos)} Videos`;
+
+                // Persona
+                document.getElementById('cpNiche').textContent = ch.cp_primary_niche || '-';
+                document.getElementById('cpIndustry').textContent = ch.cp_industry || '-';
+                document.getElementById('cpExp').textContent = ch.cp_experience_level || '-';
+                document.getElementById('cpLang').textContent = ch.cp_primary_language || '-';
+                document.getElementById('cpBrand').innerHTML = toBoolStr(ch.cp_brand_friendly);
+
+                // Audience
+                document.getElementById('audTarget').textContent = ch.cp_target_audience || '-';
+                document.getElementById('audIntent').textContent = ch.aud_buying_intent || '-';
+                document.getElementById('audSpend').textContent = ch.aud_spending_power || '-';
+                document.getElementById('audComm').textContent = ch.aud_community_strength || '-';
+                document.getElementById('audSkill').textContent = ch.aud_skill_level || '-';
+
+                // Quality & Activity
+                document.getElementById('actStatus').textContent = ch.act_status || '-';
+                document.getElementById('qProd').textContent = `${ch.q_production_quality || 0}/10`;
+                document.getElementById('qProf').textContent = `${ch.q_professionalism || 0}/10`;
+                document.getElementById('actScore').textContent = `${ch.act_score || 0}/100`;
+                document.getElementById('actGap').textContent = `${ch.act_actual_gap_days || 0} days`;
+
+                // Sponsorship
+                document.getElementById('spReady').textContent = ch.sp_readiness || '-';
+                document.getElementById('spHas').innerHTML = toBoolStr(ch.sp_has_sponsorships);
+                document.getElementById('spAff').innerHTML = toBoolStr(ch.sp_affiliate_links);
+                document.getElementById('spEmail').innerHTML = ch.sp_business_email ? '<span class="text-green">Found</span>' : '<span class="text-red">Not Found</span>';
+
+                // Chart
+                const ctx = document.getElementById('activityChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['30 Days', '90 Days', '365 Days'],
+                        datasets: [{
+                            label: 'Uploads',
+                            data: [ch.act_uploads_30d || 0, ch.act_uploads_90d || 0, ch.act_uploads_1y || 0],
+                            backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { color: '#64748b' } },
+                            x: { grid: { display: false }, ticks: { color: '#64748b' } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+
+                // Videos
+                const grid = document.getElementById('videoGrid');
+                if (data.videos && data.videos.length > 0) {
+                    data.videos.forEach(v => {
+                        let topicsHtml = '', themesHtml = '', thumbsHtml = '', sponsorsHtml = '';
+                        
+                        if(v.analysis && v.analysis.topics) {
+                            JSON.parse(v.analysis.topics).forEach(t => topicsHtml += `<span class="tag">#${t}</span>`);
+                        }
+                        if(v.analysis && v.analysis.sentiment_themes) {
+                            JSON.parse(v.analysis.sentiment_themes).forEach(t => themesHtml += `<span class="tag">🎭 ${t}</span>`);
+                        }
+                        if(v.analysis && v.analysis.thumbnail_elements) {
+                            JSON.parse(v.analysis.thumbnail_elements).forEach(t => thumbsHtml += `<span class="tag">🖼️ ${t}</span>`);
+                        }
+                        if(v.analysis && v.analysis.sponsor_pitches) {
+                            JSON.parse(v.analysis.sponsor_pitches).forEach(t => sponsorsHtml += `<span class="tag" style="background: rgba(16,185,129,0.2); color: #34d399;">💰 ${t}</span>`);
+                        }
+                        
+                        const card = document.createElement('div');
+                        card.className = 'video-card';
+                        card.innerHTML = `
+                            <h4>${v.title}</h4>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                                ${formatNum(v.views)} views • ${formatNum(v.likes)} likes • ${v.duration_min} mins
+                            </div>
+                            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary);">Topics</div>
+                            <div class="tag-container" style="margin-bottom: 0.8rem;">${topicsHtml || '<span class="tag">None extracted</span>'}</div>
+                            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary);">Sentiments</div>
+                            <div class="tag-container" style="margin-bottom: 0.8rem;">${themesHtml || '<span class="tag">None extracted</span>'}</div>
+                            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary);">Sponsors</div>
+                            <div class="tag-container">${sponsorsHtml || '<span class="tag">None extracted</span>'}</div>
+                        `;
+                        grid.appendChild(card);
+                    });
+                } else {
+                    grid.innerHTML = '<div style="color: var(--text-secondary);">No deep analysis data available for videos.</div>';
+                }
+
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+
+            } catch (err) {
+                document.getElementById('loader').innerHTML = `
+                    <div style="color: #f87171; text-align: center;">
+                        <h3>Failed to load dashboard</h3>
+                        <p>${err.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        window.onload = initDashboard;
+    </script>
+</body>
+</html>

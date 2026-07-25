@@ -1,0 +1,11 @@
+google-api-python-client
+google-genai
+pandas
+python-dateutil
+playwright
+youtube-transcript-api
+requests
+pydantic
+flask
+isodate
+openpyxl
