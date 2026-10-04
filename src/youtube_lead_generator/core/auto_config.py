@@ -18,6 +18,9 @@ REGION_CODE = "IN"
 # Sort order: "relevance", "viewCount", or "date"
 SORT_ORDER = "viewCount"
 
+# Search Target: "video" (Video Content Search - Recommended for Games e.g. "pubg pc"), "live", or "channel"
+SEARCH_TARGET = "video"
+
 # Maximum number of channels to fetch per search
 MAX_CHANNELS_PER_SEARCH = 10
 

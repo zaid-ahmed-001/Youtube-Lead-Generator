@@ -105,7 +105,7 @@ class APIKeyPoolManager:
                 return api_func(youtube_client, *args, **kwargs)
             except HttpError as e:
                 if e.resp.status == 403 and ("quotaExceeded" in str(e) or "quota" in str(e).lower()):
-                    print("⚠️ API Key Quota Exhausted! Rotating to next key in pool...")
+                    print("[QUOTA WARNING] API Key Quota Exhausted! Rotating to next key in pool...")
                     cls.mark_key_exhausted()
                     attempts += 1
                 else:

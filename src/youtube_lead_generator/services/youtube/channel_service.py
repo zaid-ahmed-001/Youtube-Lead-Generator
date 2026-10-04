@@ -78,18 +78,23 @@ class ChannelService:
         }
 
     def search_channels(self, keyword: str, order: str = 'relevance', max_results: int = 5, region_code: str = None,
-                        relevance_language: str = None, safe_search: str = None, published_after: str = None, published_before: str = None, topic_id: str = None):
-        # The YouTube API is notoriously broken for sorting channels by viewCount.
-        # To fix this, we fetch the top 50 relevant channels and sort them locally.
-        fetch_limit = 50 if order in ['viewCount', 'date'] else max_results
+                        relevance_language: str = None, safe_search: str = None, published_after: str = None, published_before: str = None, topic_id: str = None, search_target: str = 'video'):
+        # If search_target is 'video' or 'live', we search YouTube for matching videos/streams and extract creator channel IDs.
+        # This resolves the issue where searching 'pubg pc' via type=channel returns official topic channels instead of content creators.
+        fetch_limit = 50 if (order in ['viewCount', 'date'] or search_target in ['video', 'live']) else max_results
+        
+        search_type = "video" if search_target in ["video", "live"] else "channel"
         
         search_kwargs = {
             "part": "snippet",
-            "type": "channel",
+            "type": search_type,
             "q": keyword,
             "order": "relevance",
             "maxResults": fetch_limit
         }
+        
+        if search_target == "live":
+            search_kwargs["eventType"] = "live"
         
         if region_code:
             search_kwargs["regionCode"] = region_code
@@ -110,11 +115,19 @@ class ChannelService:
         if not response.get("items"):
             return []
             
-        channel_ids = [item["snippet"]["channelId"] for item in response["items"]]
+        # Extract unique channel IDs in order of video/channel search relevance
+        channel_ids = []
+        for item in response["items"]:
+            cid = item["snippet"].get("channelId") or (item["id"].get("channelId") if isinstance(item.get("id"), dict) else None)
+            if cid and cid not in channel_ids:
+                channel_ids.append(cid)
+                
+        if not channel_ids:
+            return []
         
         channels_request = youtube.channels().list(
             part="snippet,statistics,brandingSettings",
-            id=",".join(channel_ids)
+            id=",".join(channel_ids[:50])
         )
 
         channels_response = channels_request.execute()

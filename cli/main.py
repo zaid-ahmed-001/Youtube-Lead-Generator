@@ -109,12 +109,15 @@ def run_cli():
     )
     print(f"\n[DB] Scrape run #{RUN_ID} started.")
 
+    # AI Enrichment Toggle
+    ENABLE_AI = input("Enable Gemini AI enrichment? (y/n, default y): ").strip().lower() != "n"
+
     # Deep Analysis Settings
-    DO_DEEP_ANALYSIS = input("Run deep content analysis? (y/n): ").strip().lower() == "y"
+    DO_DEEP_ANALYSIS = (input("Run deep content analysis? (y/n): ").strip().lower() == "y") if ENABLE_AI else False
     DEEP_ANALYSIS_LIMIT = int(input("How many top videos to analyze? ").strip()) if DO_DEEP_ANALYSIS else 0
 
     # Benchmarking Settings
-    DO_BENCHMARKING = input("Run competitor benchmarking? (y/n): ").strip().lower() == "y"
+    DO_BENCHMARKING = (input("Run competitor benchmarking? (y/n): ").strip().lower() == "y") if ENABLE_AI else False
     COMPETITOR_HANDLE = input("Enter competitor handle: ").strip() if DO_BENCHMARKING else None
 
     def extract_channel_data(handle):
@@ -137,46 +140,55 @@ def run_cli():
         print("Channel not found.")
         sys.exit(1)
 
-    print("\n--- Creator Profile ---")
-    profile = CreatorProfileAnalyzer().analyze(channel, videos, category, socials)
-    print(profile)
+    profile, audience, brands, quality, sponsorship = None, None, None, None, None
 
-    print("\n--- Audience ---")
-    audience_comments = []
-    audience_transcripts = []
-    top_audience_videos = sorted(
-        videos,
-        key=lambda v: v.get("views", 0),
-        reverse=True
-    )[:5]
+    if ENABLE_AI:
+        try:
+            print("\n--- Creator Profile ---")
+            profile = CreatorProfileAnalyzer().analyze(channel, videos, category, socials)
+            print(profile)
 
-    for video in top_audience_videos:
-        video_id = video["video_id"]
-        comments = CommentService.get_top_comments(video_id, max_results=20)
-        audience_comments.extend(comments)
-        transcript = TranscriptExtractor.get_transcript(video_id)
-        if transcript:
-            audience_transcripts.append(transcript)
+            print("\n--- Audience ---")
+            audience_comments = []
+            audience_transcripts = []
+            top_audience_videos = sorted(
+                videos,
+                key=lambda v: v.get("views", 0),
+                reverse=True
+            )[:5]
 
-    audience = AudienceAnalyzer().analyze(
-        channel,
-        videos,
-        audience_comments,
-        audience_transcripts
-    )
-    print(audience)
+            for video in top_audience_videos:
+                video_id = video["video_id"]
+                comments = CommentService.get_top_comments(video_id, max_results=20)
+                audience_comments.extend(comments)
+                transcript = TranscriptExtractor.get_transcript(video_id)
+                if transcript:
+                    audience_transcripts.append(transcript)
 
-    print("\n--- Brands ---")
-    brands = BrandDetector().analyze(channel, videos, category, socials)
-    print(brands)
+            audience = AudienceAnalyzer().analyze(
+                channel,
+                videos,
+                audience_comments,
+                audience_transcripts
+            )
+            print(audience)
 
-    print("\n--- Quality ---")
-    quality = QualityAnalyzer().analyze(channel, videos, category, socials)
-    print(quality)
+            print("\n--- Brands ---")
+            brands = BrandDetector().analyze(channel, videos, category, socials)
+            print(brands)
 
-    print("\n--- Sponsorship ---")
-    sponsorship = SponsorshipAnalyzer().analyze(channel, videos, category, socials)
-    print(sponsorship)
+            print("\n--- Quality ---")
+            quality = QualityAnalyzer().analyze(channel, videos, category, socials)
+            print(quality)
+
+            print("\n--- Sponsorship ---")
+            sponsorship = SponsorshipAnalyzer().analyze(channel, videos, category, socials)
+            print(sponsorship)
+        except Exception as e:
+            print(f"\n[AI Warning] Gemini AI enrichment failed/skipped: {e}")
+            print("Proceeding with pure YouTube channel data extraction.")
+    else:
+        print("\n[AI Bypass] Skipping Gemini AI analyzers. Extracting pure YouTube Data.")
 
     print("\n--- Activity ---")
     activity = ActivityStatus.analyze(videos)

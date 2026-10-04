@@ -13,7 +13,7 @@ class AuditLogger:
             "details": details
         }
         cls._logs.appendleft(entry)
-        print(f"🔒 AUDIT LOG [{entry['timestamp']}] User '{entry['username']}': {action} - {details}")
+        print(f"AUDIT LOG [{entry['timestamp']}] User '{entry['username']}': {action} - {details}")
 
     @classmethod
     def get_logs(cls, limit: int = 100) -> list:

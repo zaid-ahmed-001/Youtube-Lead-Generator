@@ -1,10 +1,15 @@
 # YouTube Creator Scraper & Analyzer
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+
 A comprehensive Python-based tool for scraping YouTube creator data and analyzing it using AI (Google Gemini). Features include profile analysis, audience insights, content quality scoring, sponsorship evaluation, and automated continuous scraping.
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 1. [Overview](#overview)
 2. [Features](#features)
@@ -40,30 +45,30 @@ All data is stored in SQLite with full historical tracking.
 ## Features
 
 ### Core Analysis
-- ✅ **Creator Profile**: Niche detection, content style classification
-- ✅ **Audience Analysis**: Demographics, interests, buying intent
-- ✅ **Brand Detection**: Associated brands, products, technologies
-- ✅ **Quality Scoring**: Production quality, consistency, originality (0-10 scale)
-- ✅ **Sponsorship Evaluation**: Readiness score, existing sponsorships
-- ✅ **Activity Tracking**: Upload frequency, consistency, channel health status
-- ✅ **Benchmarking**: Head-to-head creator comparisons
+- **Creator Profile**: Niche detection, content style classification
+- **Audience Analysis**: Demographics, interests, buying intent
+- **Brand Detection**: Associated brands, products, technologies
+- **Quality Scoring**: Production quality, consistency, originality (0-10 scale)
+- **Sponsorship Evaluation**: Readiness score, existing sponsorships
+- **Activity Tracking**: Upload frequency, consistency, channel health status
+- **Benchmarking**: Head-to-head creator comparisons
 
 ### Deep Analysis (Optional)
-- 📹 **Transcript Analysis**: Topics, CTAs, sponsor pitches
-- 💬 **Sentiment Analysis**: Comment themes, audience questions
-- 🖼️ **Thumbnail Analysis**: Design quality, clickbait scoring (Vision AI)
+- **Transcript Analysis**: Topics, CTAs, sponsor pitches
+- **Sentiment Analysis**: Comment themes, audience questions
+- **Thumbnail Analysis**: Design quality, clickbait scoring (Vision AI)
 
 ### Automation
-- 🤖 **Auto-Run Mode**: Continuous keyword-based scraping
-- 🔄 **Smart Re-scraping**: Time-based duplicate prevention
-- 📊 **Historical Tracking**: Every scrape saved with timestamp
-- ⚡ **Rate Limiting**: Configurable delays to protect API quota
+- **Auto-Run Mode**: Continuous keyword-based scraping
+- **Smart Re-scraping**: Time-based duplicate prevention
+- **Historical Tracking**: Every scrape saved with timestamp
+- **Rate Limiting**: Configurable delays to protect API quota
 
 ### Web Interface
-- 🌐 **Beautiful Dashboard**: View all scraped data in a web browser
-- 🔍 **Search & Filter**: Find channels by name, niche, or metrics
-- 📈 **Statistics**: Total channels, runs, videos at a glance
-- 📋 **Detailed Views**: Click any channel for full analysis
+- **Beautiful Dashboard**: View all scraped data in a web browser
+- **Search & Filter**: Find channels by name, niche, or metrics
+- **Statistics**: Total channels, runs, videos at a glance
+- **Detailed Views**: Click any channel for full analysis
 
 ---
 
@@ -223,21 +228,21 @@ DEEP_ANALYSIS_LIMIT = 2
 ║            AUTO-RUN MODE - CONTINUOUS SCRAPING                    ║
 ╚═══════════════════════════════════════════════════════════════════╝
 
-📋 Configuration:
+Configuration:
    Keywords: ['tech review']
    Region: US
    Sort: viewCount
    Max channels per search: 10
    Re-scrape threshold: 168 hours
 
-🔍 Searching for channels...
-✓ Found 10 channels
+Searching for channels...
+[OK] Found 10 channels
 
-[1/10] TechReviewer (@techreviewer) - ⏭️  Skipped (scraped recently)
+[1/10] TechReviewer (@techreviewer) - [SKIP] Skipped (scraped recently)
 [2/10] GadgetGuru (@gadgetguru) - Processing...
-✓ Channel saved!
+[OK] Channel saved!
 
-📊 Batch Summary:
+Batch Summary:
    Processed: 8 | Skipped: 2 | Errors: 0
 ```
 
@@ -274,11 +279,11 @@ RESCRAPE_THRESHOLD_HOURS = 720  # Monthly
 
 #### Features
 
-- **📊 Dashboard**: Stats cards (channels, runs, videos)
-- **🔍 Search**: Real-time search by name or niche
-- **📋 Table View**: Sortable columns with all key metrics
-- **🎨 Color Badges**: Activity status (Excellent/Healthy/Active/Dormant)
-- **📱 Responsive**: Works on desktop and mobile
+- **Dashboard**: Stats cards (channels, runs, videos)
+- **Search**: Real-time search by name or niche
+- **Table View**: Sortable columns with all key metrics
+- **Color Badges**: Activity status (Excellent/Healthy/Active/Dormant)
+- **Responsive**: Works on desktop and mobile
 
 #### Quick Start
 ```bash
@@ -677,7 +682,7 @@ plt.show()
 
 ## Security & Privacy
 
-⚠️ **Important Notices**:
+**Important Notices**:
 
 1. **API Keys**: Store securely, never commit to version control
 2. **Local Use Only**: Web viewer has no authentication
@@ -762,4 +767,4 @@ pip install -r requirements.txt
 
 ---
 
-**Happy Scraping! 🚀**
+**Happy Scraping!**

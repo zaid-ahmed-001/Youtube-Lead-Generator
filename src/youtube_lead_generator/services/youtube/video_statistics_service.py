@@ -46,6 +46,8 @@ class VideoStatisticsService:
                 "duration_minutes": duration_minutes,
                 "is_short": duration_seconds <= 60,
 
+                "live_broadcast_content": snippet.get("liveBroadcastContent", "none"),
+
                 "views": int(stats.get("viewCount", 0)),
                 "likes": int(stats.get("likeCount", 0)),
                 "comments": int(stats.get("commentCount", 0))

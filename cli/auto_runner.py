@@ -71,12 +71,12 @@ def analyze_and_save_channel(handle, run_id, do_deep=False, deep_limit=0):
     channel, videos, category, socials = extract_channel_data(handle)
     
     if not channel:
-        print(f"❌ Channel '{handle}' not found or unavailable.")
+        print(f"[ERROR] Channel '{handle}' not found or unavailable.")
         return None
     
     channel_id = channel["channel_id"]
     
-    print(f"✓ Channel: {channel['channel_name']}")
+    print(f"[OK] Channel: {channel['channel_name']}")
     print(f"  Subscribers: {channel.get('subscriber_count', 0):,}")
     print(f"  Total Videos: {len(videos)}")
     
@@ -123,7 +123,7 @@ def analyze_and_save_channel(handle, run_id, do_deep=False, deep_limit=0):
         activity=activity,
     )
     video_id_map = insert_videos(channel_row_id, videos)
-    print(f"✓ Channel '{channel['channel_name']}' saved (row {channel_row_id}), {len(videos)} videos saved.")
+    print(f"[SAVED] Channel '{channel['channel_name']}' saved (row {channel_row_id}), {len(videos)} videos saved.")
     
     # Deep analysis if requested
     if do_deep and deep_limit > 0:
@@ -166,7 +166,7 @@ def analyze_and_save_channel(handle, run_id, do_deep=False, deep_limit=0):
                 video_row_id = video_id_map.get(vid_id)
                 if video_row_id:
                     insert_video_deep_analysis(video_row_id, t_profile, s_profile, thumb_profile)
-                    print(f"  ✓ Deep analysis saved for video {vid_id}.")
+                    print(f"  [SAVED] Deep analysis saved for video {vid_id}.")
     
     return channel_row_id
 
@@ -183,13 +183,13 @@ def run_auto_mode():
     try:
         import youtube_lead_generator.core.auto_config as cfg
     except ImportError:
-        print("❌ auto_config.py not found. Please create it first.")
+        print("[ERROR] auto_config.py not found. Please create it first.")
         return
     
     print("╔═══════════════════════════════════════════════════════════════════╗")
     print("║            AUTO-RUN MODE - CONTINUOUS SCRAPING                    ║")
     print("╚═══════════════════════════════════════════════════════════════════╝")
-    print(f"\n📋 Configuration:")
+    print(f"\nConfiguration:")
     print(f"   Keywords: {cfg.KEYWORDS}")
     print(f"   Region: {cfg.REGION_CODE or 'Global'}")
     print(f"   Sort: {cfg.SORT_ORDER}")
@@ -199,7 +199,7 @@ def run_auto_mode():
     print(f"   Deep analysis: {cfg.DO_DEEP_ANALYSIS}")
     if cfg.DO_DEEP_ANALYSIS:
         print(f"   Deep analysis limit: {cfg.DEEP_ANALYSIS_LIMIT} videos")
-    print(f"\n⚠️  Press Ctrl+C at any time to stop.\n")
+    print(f"\n[NOTICE] Press Ctrl+C at any time to stop.\n")
     
     time.sleep(2)  # Give user time to read
     
@@ -217,22 +217,24 @@ def run_auto_mode():
                 sort_order=cfg.SORT_ORDER,
             )
             
-            print(f"\n🔍 Searching for channels matching: '{combined_query}'...")
+            search_target = getattr(cfg, 'SEARCH_TARGET', 'video')
+            print(f"\n[SEARCH] Searching for channels matching: '{combined_query}' (Target: {search_target})...")
             
             # Search for channels
             channels = channel_service.search_channels(
                 combined_query,
                 cfg.SORT_ORDER,
                 cfg.MAX_CHANNELS_PER_SEARCH,
-                cfg.REGION_CODE
+                cfg.REGION_CODE,
+                search_target=search_target
             )
             
             if not channels:
-                print("⚠️  No channels found. Waiting 30 seconds before next search...")
+                print("[NOTICE] No channels found. Waiting 30 seconds before next search...")
                 time.sleep(30)
                 continue
             
-            print(f"✓ Found {len(channels)} channels")
+            print(f"[OK] Found {len(channels)} channels")
             
             # Process each channel
             for idx, ch_info in enumerate(channels):
@@ -241,7 +243,7 @@ def run_auto_mode():
                 channel_name = ch_info.get("channel_name", "Unknown")
                 
                 if not handle or not channel_id:
-                    print(f"\n[{idx+1}/{len(channels)}] ⚠️  Skipping channel (missing handle/ID)")
+                    print(f"\n[{idx+1}/{len(channels)}] [SKIP] Skipping channel (missing handle/ID)")
                     error_count += 1
                     continue
                 
@@ -249,7 +251,7 @@ def run_auto_mode():
                 
                 # Check if we should rescrape
                 if not should_rescrape(channel_id, cfg.RESCRAPE_THRESHOLD_HOURS):
-                    print(f"  ⏭️  Skipped (scraped recently)")
+                    print(f"  [SKIP] Skipped (scraped recently)")
                     skipped_count += 1
                     time.sleep(1)  # Small delay even for skipped
                     continue
@@ -265,37 +267,37 @@ def run_auto_mode():
                     
                     if channel_row_id:
                         processed_count += 1
-                        print(f"\n✅ Successfully processed! (Total: {processed_count})")
+                        print(f"\n[SUCCESS] Successfully processed! (Total: {processed_count})")
                     else:
                         error_count += 1
-                        print(f"\n❌ Failed to process channel")
+                        print(f"\n[ERROR] Failed to process channel")
                     
                 except Exception as e:
                     error_count += 1
-                    print(f"\n❌ Error processing channel: {e}")
+                    print(f"\n[ERROR] Error processing channel: {e}")
                 
                 # Delay between channels to avoid rate limits
                 if idx < len(channels) - 1:  # Don't delay after last channel
-                    print(f"\n⏸️  Waiting {cfg.DELAY_BETWEEN_CHANNELS}s before next channel...")
+                    print(f"\n[WAIT] Waiting {cfg.DELAY_BETWEEN_CHANNELS}s before next channel...")
                     time.sleep(cfg.DELAY_BETWEEN_CHANNELS)
             
             # Summary after each batch
             print(f"\n{'─'*80}")
-            print(f"📊 Batch Summary:")
+            print(f"Batch Summary:")
             print(f"   Processed: {processed_count} | Skipped: {skipped_count} | Errors: {error_count}")
             print(f"{'─'*80}")
             
             # Small delay before next search cycle
-            print(f"\n⏸️  Waiting 10s before next search cycle...")
+            print(f"\n[WAIT] Waiting 10s before next search cycle...")
             time.sleep(10)
     
     except KeyboardInterrupt:
-        print(f"\n\n🛑 Auto-run stopped by user.")
-        print(f"\n📊 Final Statistics:")
+        print(f"\n\n[STOP] Auto-run stopped by user.")
+        print(f"\nFinal Statistics:")
         print(f"   Total Processed: {processed_count}")
         print(f"   Total Skipped: {skipped_count}")
         print(f"   Total Errors: {error_count}")
-        print(f"\nGoodbye! 👋\n")
+        print(f"\nGoodbye!\n")
 
 
 # ═════════════════════════════════════════════════════════════════════════════

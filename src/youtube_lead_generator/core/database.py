@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS channels (
     total_views             INTEGER,
     total_videos            INTEGER,
     email                   TEXT,
+    is_live_streamer        INTEGER DEFAULT 0,
 
     -- category
     primary_category        TEXT,
@@ -309,9 +310,16 @@ CREATE TABLE IF NOT EXISTS benchmark_content_gaps (
 
 
 def init_db():
-    """Create all tables if they don't exist yet."""
+    """Create all tables if they don't exist yet and run migrations."""
     with get_connection() as conn:
         conn.executescript(_DDL)
+        try:
+            cursor = conn.execute("PRAGMA table_info(channels)")
+            cols = [r[1] for r in cursor.fetchall()]
+            if "is_live_streamer" not in cols:
+                conn.execute("ALTER TABLE channels ADD COLUMN is_live_streamer INTEGER DEFAULT 0")
+        except Exception:
+            pass
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -352,6 +360,7 @@ def insert_channel(
     audience,
     brands,
     activity: dict,
+    is_live_streamer: int = 0,
 ) -> int:
     """
     Insert a full channel snapshot and all its normalized list children.
@@ -366,7 +375,7 @@ def insert_channel(
             INSERT INTO channels (
                 run_id, scraped_at,
                 channel_id, channel_name, description, joined_date, country,
-                subscriber_count, total_views, total_videos, email,
+                subscriber_count, total_views, total_videos, email, is_live_streamer,
                 primary_category,
                 cp_primary_niche, cp_secondary_niche, cp_industry,
                 cp_target_audience, cp_experience_level, cp_primary_language,
@@ -387,7 +396,7 @@ def insert_channel(
             ) VALUES (
                 ?, ?,
                 ?, ?, ?, ?, ?,
-                ?, ?, ?, ?,
+                ?, ?, ?, ?, ?,
                 ?,
                 ?, ?, ?,
                 ?, ?, ?,
@@ -412,7 +421,7 @@ def insert_channel(
             channel.get("description"), channel.get("joined_date"),
             channel.get("country"), channel.get("subscriber_count"),
             channel.get("total_views"), channel.get("total_videos"),
-            channel.get("email"),
+            channel.get("email"), int(is_live_streamer),
             category.get("primary_category") if category else None,
             # creator profile
             getattr(profile, "primary_niche", None),
@@ -620,6 +629,61 @@ def should_rescrape(channel_id: str, threshold_hours: int) -> bool:
     hours_since = (now_dt - last_dt).total_seconds() / 3600
     
     return hours_since >= threshold_hours
+
+
+def delete_channels(channel_ids: list) -> int:
+    """
+    Deletes channels by primary key IDs or channel_ids, along with associated child table records.
+    Returns the count of deleted channel rows.
+    """
+    if not channel_ids:
+        return 0
+    with get_connection() as conn:
+        placeholders = ",".join(["?"] * len(channel_ids))
+        rows = conn.execute(
+            f"SELECT id, channel_id FROM channels WHERE id IN ({placeholders}) OR channel_id IN ({placeholders})",
+            list(channel_ids) + list(channel_ids)
+        ).fetchall()
+        if not rows:
+            return 0
+        int_ids = [r["id"] for r in rows]
+        ch_str_ids = [r["channel_id"] for r in rows if r["channel_id"]]
+        
+        id_placeholders = ",".join(["?"] * len(int_ids))
+
+        tables_by_int_id = ["videos", "content_styles", "brands", "audience_demographics", "creator_profiles", "sponsorship_readiness", "quality_scores", "activity_metrics"]
+        for tbl in tables_by_int_id:
+            try:
+                conn.execute(f"DELETE FROM {tbl} WHERE channel_id IN ({id_placeholders})", int_ids)
+            except Exception:
+                pass
+
+        if ch_str_ids:
+            ch_placeholders = ",".join(["?"] * len(ch_str_ids))
+            for tbl in ["videos", "creator_profiles", "sponsorship_readiness", "quality_scores", "activity_metrics"]:
+                try:
+                    conn.execute(f"DELETE FROM {tbl} WHERE channel_id IN ({ch_placeholders})", ch_str_ids)
+                except Exception:
+                    pass
+
+        cursor = conn.execute(f"DELETE FROM channels WHERE id IN ({id_placeholders})", int_ids)
+        conn.commit()
+        return cursor.rowcount
+
+
+def clear_workspace() -> bool:
+    """
+    Clears all scraped records from the current active workspace database.
+    """
+    with get_connection() as conn:
+        tables = ["channels", "videos", "scrape_runs", "content_styles", "brands", "audience_demographics", "creator_profiles", "sponsorship_readiness", "quality_scores", "activity_metrics", "benchmarks"]
+        for tbl in tables:
+            try:
+                conn.execute(f"DELETE FROM {tbl}")
+            except Exception:
+                pass
+        conn.commit()
+        return True
 
 
 # ── auto-init on import ───────────────────────────────────────────────────────

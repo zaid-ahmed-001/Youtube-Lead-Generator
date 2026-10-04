@@ -82,14 +82,14 @@ The platform uses SQLite with `PRAGMA foreign_keys = ON` and `PRAGMA journal_mod
 
 ## 4. Frontend & User Interface System
 
-The web frontend (`web.py`) strictly adheres to an **Executive Microsoft Excel Theme Palette**:
+The web frontend (`web.py`) strictly adheres to a **Notion-style Minimalist UI**:
 
 ### Core UI Components & Conventions
 - **SVG Icons Only**: Emojis are strictly forbidden across buttons, checkboxes, dropdowns, and status badges. All UI controls use crisp vector SVG icons (`<svg class="excel-icon">`).
-- **Theme-Matched Retro Office Dialogs**: Native browser `alert()` and `prompt()` functions are replaced with retro Office/Windows dialog modals (`showWinAlert`, `showWinPrompt`) rendered with proper title bars, action buttons, and icons (`info`, `warning`, `error`, `question`).
+- **Minimalist Notion Dialogs**: Native browser `alert()` and `prompt()` functions are replaced with custom floating modals (`showWinAlert`, `showWinPrompt`) styled with clean white backgrounds, soft drop shadows (`rgba(15, 15, 15, 0.1) 0px 5px 10px`), and simple layouts without heavy title bars.
 - **Workspace Selector Component**:
-  - A custom translucent pill badge in the top ribbon containing a database vector icon, muted `"Workspace:"` label, bold active workspace name, and custom dropdown chevron.
-  - Toggles a custom floating card popover menu (`#workspaceDropdownMenu`) showing active workspace checkmark (`✓`) and a `+ Create New Workspace...` action button.
+  - A custom minimalist pill badge in the top navigation, using dark gray text on a white/light-gray background.
+  - Toggles a custom floating card popover menu (`#workspaceDropdownMenu`) showing active workspace checkmark and a `+ Create New Workspace...` action button.
 - **Fixed Screen Boundaries & Pinned Footer**:
   - The viewport is constrained with `body { height: 100vh; overflow: hidden; }`.
   - Grid content scrolls inside `.grid-container`, while `.sheet-footer` (showing page status and pagination controls) remains pinned at the very bottom of the screen regardless of table row count.
@@ -99,8 +99,8 @@ The web frontend (`web.py`) strictly adheres to an **Executive Microsoft Excel T
 - **Column Visibility Picker Filter**:
   - Dropdown menu allowing users to dynamically toggle visibility of all 50+ data columns, with quick presets: *Select All*, *Deselect All*, and *Essential View*.
 - **Scraper Operations Dashboard**:
-  - **On-Demand Extraction Engine**: Scrape presets (`🔥 Tech & SaaS`, `🎮 India Gaming`, `💼 Finance`, `🎯 Sponsored Leads`), extraction methods, filter parameters, AI enrichment chip toggles, competitor benchmarking, and dark terminal log console.
-  - **Background Autorunner Daemon**: Animated status pulse badge (`.pulse-dot`), threshold input (hours), daemon control toggle, live telemetry stat widgets (`Channels`, `Videos`, `Success Rate`, `API Quota`), and daemon telemetry log console.
+  - **On-Demand Extraction Engine**: Scrape presets, extraction methods, filter parameters, AI enrichment chip toggles, competitor benchmarking, and minimalist terminal log console.
+  - **Background Autorunner Daemon**: Animated status pulse badge, threshold input, daemon control toggle, live telemetry stat widgets, and daemon telemetry log console.
 - **Full-Screen Terminal Modal (`#terminalModal`)**:
   - Interactive terminal controls on both log consoles (`Clear`, `Copy`, `Expand ⤢`).
   - `Expand ⤢` pops open a 95% full-screen developer terminal console with syntax-colored output and keyboard <kbd>ESC</kbd> shortcut support.
@@ -115,7 +115,7 @@ When modifying or expanding code in this project, adhere strictly to the followi
    - Always verify table and column existence using `table_exists(conn, table_name)` and `get_table_columns(conn, table_name)` before executing SQL queries to ensure compatibility across workspace versions.
 2. **Obey UI/Aesthetics Directives**:
    - Never use text emojis in HTML/JS components; use vector SVG icons.
-   - Maintain the Office/Excel blue theme palette (`--excel-blue: #1056a0`, `--excel-light-blue: #f0f6fc`, `--excel-border: #d2d0ce`).
+   - Maintain the Notion-style minimalist palette (`--bg-primary: #ffffff`, `--bg-secondary: #f7f7f5`, `--text-main: #37352f`, `--border-color: #e9e9e7`, `--hover-bg: #efefed`).
    - Use custom `showWinAlert` and `showWinPrompt` modals for user interactions.
 3. **Workspace Isolation**:
    - Use `WorkspaceManager.get_db_path()` to obtain the active SQLite file path. Never hardcode single database file paths.
